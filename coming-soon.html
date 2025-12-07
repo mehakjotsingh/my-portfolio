@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Coming Soon - Mehakjot Singh Sidhu's Portfolio">
+    <title>Coming Soon - Mehakjot Singh Sidhu</title>
+    <link rel="stylesheet" href="coming-soon.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Animated Background Particles -->
+    <div class="particles" id="particles"></div>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Header Section -->
+        <header class="header">
+            <div class="photo-section">
+                <div class="photo-container">
+                    <img src="your-photo.jpg" alt="Mehakjot Singh Sidhu" class="profile-photo" id="profilePhoto">
+                    <div class="photo-blend-overlay"></div>
+                </div>
+            </div>
+            <h1 class="name-title">Mehakjot Singh Sidhu</h1>
+            <p class="subtitle">MBA Candidate at USC Marshall School of Business</p>
+        </header>
+
+        <!-- Coming Soon Section -->
+        <section class="coming-soon-section">
+            <div class="coming-soon-content">
+                <div class="work-in-progress">
+                    <div class="construction-site">
+                        <div class="construction-worker worker-1">👷</div>
+                        <div class="construction-worker worker-2">👷‍♀️</div>
+                        <div class="construction-tools">
+                            <div class="hammer">🔨</div>
+                            <div class="saw">🪚</div>
+                            <div class="wrench">🔧</div>
+                        </div>
+                        <div class="construction-sign">🚧</div>
+                    </div>
+                    <h2 class="wip-title">Work in Progress</h2>
+                    <p class="wip-message">
+                        Construction in progress! My full portfolio is being built with care.
+                    </p>
+                    <p class="apology-message">
+                        I will be back soon, sorry for inconvenience.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Game Section -->
+        <section class="game-section">
+            <div class="game-intro">
+                <p class="game-message">
+                    While I'm working on my website, wanna take a break with this game? ✨
+                </p>
+                <button class="start-game-btn" id="startGameBtn">Start Game</button>
+            </div>
+
+            <div class="game-container" id="gameContainer" style="display: none;">
+                <div class="game-header">
+                    <div class="score-board">
+                        <span class="score-label">Score:</span>
+                        <span class="score-value" id="scoreValue">0</span>
+                    </div>
+                    <div class="high-score-board">
+                        <span class="high-score-label">Best:</span>
+                        <span class="high-score-value" id="highScoreValue">0</span>
+                    </div>
+                    <div class="timer">
+                        <span class="timer-label">Time:</span>
+                        <span class="timer-value" id="timerValue">10</span>
+                    </div>
+                    <button class="pause-btn" id="pauseBtn">⏸</button>
+                </div>
+                <div class="game-description" id="gameDescription">
+                    <p>Quick reflexes needed! Stars appear and disappear fast - catch them all!</p>
+                </div>
+                <div class="game-area" id="gameArea">
+                    <div class="game-instructions" id="gameInstructions">
+                        <p>Click the stars as they appear!</p>
+                        <p>Get as many points as you can in 10 seconds. ⚡</p>
+                    </div>
+                </div>
+                <div class="game-over" id="gameOver" style="display: none;">
+                    <h3>Game Over!</h3>
+                    <p class="final-score">Final Score: <span id="finalScore">0</span></p>
+                    <div class="game-buttons">
+                        <button class="play-again-btn" id="playAgainBtn">Play Again</button>
+                        <button class="back-btn" id="backBtn">Back</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Get in Touch Section -->
+        <section class="contact-section">
+            <h2 class="contact-title">Get In Touch</h2>
+            <p class="contact-subtitle">
+                Want to connect? Drop me a message and I'll get back to you soon!
+            </p>
+            
+            <div class="contact-content">
+                <div class="contact-info">
+                    <div class="contact-method">
+                        <span class="contact-icon">📧</span>
+                        <a href="mailto:your.email@example.com" class="contact-link">your.email@example.com</a>
+                    </div>
+                    <div class="contact-method">
+                        <span class="contact-icon">💼</span>
+                        <a href="https://linkedin.com/in/yourprofile" target="_blank" class="contact-link">LinkedIn</a>
+                    </div>
+                </div>
+
+                <form class="contact-form" id="contactForm">
+                    <div class="form-group">
+                        <input type="text" id="name" name="name" placeholder="Your Name" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="email" id="email" name="email" placeholder="Your Email" required>
+                    </div>
+                    <div class="form-group">
+                        <textarea id="message" name="message" rows="5" placeholder="Your Message" required></textarea>
+                    </div>
+                    <button type="submit" class="submit-btn">Send Message</button>
+                </form>
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2024 Mehakjot Singh Sidhu. All rights reserved.</p>
+    </footer>
+
+    <script src="coming-soon.js"></script>
+</body>
+</html>
+
