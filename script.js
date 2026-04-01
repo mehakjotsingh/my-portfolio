@@ -76,7 +76,7 @@ window.addEventListener('scroll', () => {
 });
 
 // Apple-Style Scroll Reveal Animations
-const revealElements = document.querySelectorAll('.project-card, .skill-category, .stat, .about-text, .timeline-item, .edu-card, .lc-card');
+const revealElements = document.querySelectorAll('.project-card, .skill-category, .stat, .about-text, .lc-card, .jtl-node');
 
 const revealObserver = new IntersectionObserver((entries) => {
     entries.forEach((entry, index) => {
@@ -463,15 +463,85 @@ window.addEventListener('scroll', () => {
 }());
 
 // ============================================
+// Interactive Journey Timeline
+// ============================================
+(function initJourneyTimeline() {
+    const timeline = document.getElementById('journeyTimeline');
+    if (!timeline) return;
+
+    const nodes = timeline.querySelectorAll('.jtl-node');
+
+    function closeAll(except) {
+        nodes.forEach(n => {
+            if (n !== except) {
+                n.classList.remove('open');
+                const dot = n.querySelector('.jtl-dot');
+                if (dot) dot.setAttribute('aria-expanded', 'false');
+            }
+        });
+    }
+
+    nodes.forEach(node => {
+        const dot = node.querySelector('.jtl-dot');
+        const card = node.querySelector('.jtl-card');
+        if (!dot) return;
+
+        function toggle(e) {
+            e.stopPropagation();
+            const isOpen = node.classList.contains('open');
+            closeAll(node);
+            if (!isOpen) {
+                node.classList.add('open');
+                dot.setAttribute('aria-expanded', 'true');
+            } else {
+                node.classList.remove('open');
+                dot.setAttribute('aria-expanded', 'false');
+            }
+        }
+
+        dot.addEventListener('click', toggle);
+
+        if (card) {
+            card.addEventListener('click', (e) => e.stopPropagation());
+        }
+    });
+
+    document.addEventListener('click', () => closeAll(null));
+
+    // Animate the glowing rail line when the section scrolls into view
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                timeline.classList.add('jtl--animated');
+                observer.unobserve(timeline);
+            }
+        });
+    }, { threshold: 0.15 });
+
+    observer.observe(timeline);
+
+    // Keyboard support
+    nodes.forEach(node => {
+        const dot = node.querySelector('.jtl-dot');
+        if (!dot) return;
+        dot.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                dot.click();
+            }
+        });
+    });
+}());
+
+// ============================================
 // Google Antigravity-Style Cursor Effect
 // ============================================
 (function initCursorEffect() {
     // Only run on non-touch / pointer-fine devices
     if (!window.matchMedia('(pointer: fine)').matches) return;
 
-    const dot  = document.getElementById('cursor-dot');
     const ring = document.getElementById('cursor-ring');
-    if (!dot || !ring) return;
+    if (!ring) return;
 
     // Material Symbols icon names — PM / tech / innovation themed
     const ICONS = [
@@ -486,15 +556,12 @@ window.addEventListener('scroll', () => {
     let mouseX = 0, mouseY = 0;
     let ringX  = 0, ringY  = 0;
 
-    // Half-sizes for translate offset (keeps elements centred on cursor)
-    const DOT_HALF  = 3;   // half of 6px
     const RING_HALF = 17;  // half of 34px
 
     // Track mouse
     document.addEventListener('mousemove', (e) => {
         mouseX = e.clientX;
         mouseY = e.clientY;
-        dot.style.transform = `translate(${mouseX - DOT_HALF}px, ${mouseY - DOT_HALF}px)`;
     });
 
     // Lag the ring via rAF lerp
