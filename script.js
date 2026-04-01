@@ -288,3 +288,113 @@ window.addEventListener('scroll', () => {
         // Scroll-based animations handled here
     });
 });
+
+// ============================================
+// Google Antigravity-Style Cursor Effect
+// ============================================
+(function initCursorEffect() {
+    // Only run on non-touch / pointer-fine devices
+    if (!window.matchMedia('(pointer: fine)').matches) return;
+
+    const dot  = document.getElementById('cursor-dot');
+    const ring = document.getElementById('cursor-ring');
+    if (!dot || !ring) return;
+
+    // Material Symbols icon names — PM / tech / innovation themed
+    const ICONS = [
+        'spark', 'auto_awesome', 'insights', 'trending_up',
+        'rocket_launch', 'hub', 'lightbulb', 'code',
+        'analytics', 'dashboard', 'bolt', 'psychology',
+        'business_center', 'cloud', 'commit', 'terminal',
+        'device_hub', 'star', 'data_object', 'search_spark',
+    ];
+
+    // Cursor positions
+    let mouseX = 0, mouseY = 0;
+    let ringX  = 0, ringY  = 0;
+
+    // Half-sizes for translate offset (keeps elements centred on cursor)
+    const DOT_HALF  = 3;   // half of 6px
+    const RING_HALF = 17;  // half of 34px
+
+    // Track mouse
+    document.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        dot.style.transform = `translate(${mouseX - DOT_HALF}px, ${mouseY - DOT_HALF}px)`;
+    });
+
+    // Lag the ring via rAF lerp
+    function lerpRing() {
+        ringX += (mouseX - ringX) * 0.14;
+        ringY += (mouseY - ringY) * 0.14;
+        ring.style.transform = `translate(${ringX - RING_HALF}px, ${ringY - RING_HALF}px)`;
+        requestAnimationFrame(lerpRing);
+    }
+    lerpRing();
+
+    // Show / hide cursor when entering / leaving window
+    document.addEventListener('mouseenter', () => document.body.classList.remove('cursor-out'));
+    document.addEventListener('mouseleave', () => document.body.classList.add('cursor-out'));
+
+    // Expand ring on hover over interactive elements
+    const interactiveSelector = 'a, button, input, textarea, select, label, [role="button"]';
+    document.querySelectorAll(interactiveSelector).forEach(el => {
+        el.addEventListener('mouseenter', () => document.body.classList.add('cursor-hover'));
+        el.addEventListener('mouseleave', () => document.body.classList.remove('cursor-hover'));
+    });
+
+    // Click burst ring
+    document.addEventListener('click', (e) => {
+        const burst = document.createElement('div');
+        burst.className = 'cursor-click-burst';
+        burst.style.setProperty('--cx', `${e.clientX - RING_HALF}px`);
+        burst.style.setProperty('--cy', `${e.clientY - RING_HALF}px`);
+        burst.style.transform = `translate(${e.clientX - RING_HALF}px, ${e.clientY - RING_HALF}px)`;
+        document.body.appendChild(burst);
+        burst.addEventListener('animationend', () => burst.remove());
+    });
+
+    // ---- Icon particle spawning ----
+    let lastSpawnTime = 0;
+    let lastSpawnX = 0;
+    let lastSpawnY = 0;
+    const SPAWN_INTERVAL_MS = 90;   // max one particle per 90 ms
+    const SPAWN_MIN_DIST    = 12;   // don't spawn unless cursor moved ≥12px
+
+    function spawnParticle(x, y) {
+        const icon = document.createElement('span');
+        icon.className = 'cursor-icon-particle';
+        icon.textContent = ICONS[Math.floor(Math.random() * ICONS.length)];
+
+        // Drift direction: mostly upward with random horizontal spread
+        const angle   = (Math.random() * Math.PI * 1.4) - (Math.PI * 0.7) - (Math.PI / 2);
+        const dist    = 45 + Math.random() * 55;
+        const dx      = Math.cos(angle) * dist;
+        const dy      = Math.sin(angle) * dist;
+        const rot     = (Math.random() * 60 - 30) + 'deg';
+
+        icon.style.setProperty('--start-x', `${x - 8}px`);
+        icon.style.setProperty('--start-y', `${y - 8}px`);
+        icon.style.setProperty('--dx', `${dx}px`);
+        icon.style.setProperty('--dy', `${dy}px`);
+        icon.style.setProperty('--rot', rot);
+
+        document.body.appendChild(icon);
+        icon.addEventListener('animationend', () => icon.remove());
+    }
+
+    document.addEventListener('mousemove', (e) => {
+        const now  = Date.now();
+        const dx   = e.clientX - lastSpawnX;
+        const dy   = e.clientY - lastSpawnY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (now - lastSpawnTime >= SPAWN_INTERVAL_MS && dist >= SPAWN_MIN_DIST) {
+            spawnParticle(e.clientX, e.clientY);
+            lastSpawnTime = now;
+            lastSpawnX    = e.clientX;
+            lastSpawnY    = e.clientY;
+        }
+    });
+}());
