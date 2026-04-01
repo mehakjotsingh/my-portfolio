@@ -290,6 +290,179 @@ window.addEventListener('scroll', () => {
 });
 
 // ============================================
+// Canvas: Particle Field + Heartbeat Rings
+// ============================================
+(function initCanvasEffects() {
+    if (!window.matchMedia('(pointer: fine)').matches) return;
+
+    // Create canvas and prepend behind all DOM content
+    const canvas = document.createElement('canvas');
+    canvas.id = 'fx-canvas';
+    document.body.prepend(canvas);
+
+    const ctx = canvas.getContext('2d');
+    let W = canvas.width = window.innerWidth;
+    let H = canvas.height = window.innerHeight;
+
+    window.addEventListener('resize', () => {
+        W = canvas.width = window.innerWidth;
+        H = canvas.height = window.innerHeight;
+    });
+
+    // ── Mouse position ──────────────────────────────────────────────────────
+    let mx = null, my = null;
+    document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+    document.addEventListener('mouseleave', () => { mx = null; });
+
+    // ── LAYER 1: Dust particles (1 100, tiny, no mouse interaction) ──────────
+    // Gives the "thousands of particles" density without heavy compute cost.
+    const D = 1100;
+    const dpx  = new Float32Array(D);
+    const dpy  = new Float32Array(D);
+    const dpvx = new Float32Array(D);
+    const dpvy = new Float32Array(D);
+    const dpr  = new Float32Array(D);
+
+    for (let i = 0; i < D; i++) {
+        dpx[i]  = Math.random() * W;
+        dpy[i]  = Math.random() * H;
+        dpvx[i] = (Math.random() - 0.5) * 0.18;
+        dpvy[i] = (Math.random() - 0.5) * 0.18;
+        dpr[i]  = Math.random() * 0.75 + 0.15;
+    }
+
+    // ── LAYER 2: Surface particles (300, mouse-reactive, constellation lines) ─
+    const S = 300;
+    const spx  = new Float32Array(S);
+    const spy  = new Float32Array(S);
+    const spvx = new Float32Array(S);
+    const spvy = new Float32Array(S);
+    const spr  = new Float32Array(S);
+
+    for (let i = 0; i < S; i++) {
+        spx[i]  = Math.random() * W;
+        spy[i]  = Math.random() * H;
+        spvx[i] = (Math.random() - 0.5) * 0.45;
+        spvy[i] = (Math.random() - 0.5) * 0.45;
+        spr[i]  = Math.random() * 1.4 + 0.65;
+    }
+
+    // ── Heartbeat rings ─────────────────────────────────────────────────────
+    // Each ring: { x, y, r, maxR, baseAlpha, spd, lw }
+    const rings = [];
+
+    function emitBeat() {
+        if (mx === null) return;
+        // Lub — main beat (larger, slower, brighter)
+        rings.push({ x: mx, y: my, r: 6, maxR: 215, baseAlpha: 0.55, spd: 2.6, lw: 1.6 });
+        // Dub — echo beat (smaller, faster, 200 ms after)
+        setTimeout(() => {
+            if (mx === null) return;
+            rings.push({ x: mx, y: my, r: 6, maxR: 128, baseAlpha: 0.38, spd: 3.1, lw: 1.0 });
+        }, 200);
+    }
+
+    // Emit at ~70 BPM (857 ms); slight initial delay so first beat is intentional
+    setInterval(emitBeat, 857);
+    setTimeout(emitBeat, 500);
+
+    // ── Constants ───────────────────────────────────────────────────────────
+    const REPEL_R  = 130;
+    const REPEL_R2 = REPEL_R * REPEL_R;
+    const CONN_D   = 88;
+    const CONN_D2  = CONN_D * CONN_D;
+
+    // ── Main animation loop ─────────────────────────────────────────────────
+    function tick() {
+        ctx.clearRect(0, 0, W, H);
+
+        // — Dust particles: update + single batched fill call —
+        ctx.fillStyle = 'rgba(255,255,255,0.20)';
+        ctx.beginPath();
+        for (let i = 0; i < D; i++) {
+            dpx[i] += dpvx[i];
+            dpy[i] += dpvy[i];
+            if (dpx[i] < 0) dpx[i] = W;
+            if (dpx[i] > W) dpx[i] = 0;
+            if (dpy[i] < 0) dpy[i] = H;
+            if (dpy[i] > H) dpy[i] = 0;
+            ctx.moveTo(dpx[i] + dpr[i], dpy[i]);
+            ctx.arc(dpx[i], dpy[i], dpr[i], 0, Math.PI * 2);
+        }
+        ctx.fill();
+
+        // — Surface particles: update with mouse repulsion —
+        for (let i = 0; i < S; i++) {
+            if (mx !== null) {
+                const ex = spx[i] - mx;
+                const ey = spy[i] - my;
+                const d2 = ex * ex + ey * ey;
+                if (d2 < REPEL_R2 && d2 > 0.01) {
+                    const d     = Math.sqrt(d2);
+                    const force = (REPEL_R - d) / REPEL_R * 0.58;
+                    spvx[i] += (ex / d) * force;
+                    spvy[i] += (ey / d) * force;
+                }
+            }
+            spvx[i] *= 0.965;
+            spvy[i] *= 0.965;
+            spx[i]  += spvx[i];
+            spy[i]  += spvy[i];
+            if (spx[i] < 0) spx[i] = W;
+            if (spx[i] > W) spx[i] = 0;
+            if (spy[i] < 0) spy[i] = H;
+            if (spy[i] > H) spy[i] = 0;
+        }
+
+        // — Constellation lines between nearby surface particles —
+        ctx.lineWidth = 0.5;
+        for (let i = 0; i < S; i++) {
+            for (let j = i + 1; j < S; j++) {
+                const ex = spx[i] - spx[j];
+                const ey = spy[i] - spy[j];
+                const d2 = ex * ex + ey * ey;
+                if (d2 < CONN_D2) {
+                    const alpha = 0.20 * (1 - Math.sqrt(d2) / CONN_D);
+                    ctx.strokeStyle = `rgba(255,255,255,${alpha.toFixed(3)})`;
+                    ctx.beginPath();
+                    ctx.moveTo(spx[i], spy[i]);
+                    ctx.lineTo(spx[j], spy[j]);
+                    ctx.stroke();
+                }
+            }
+        }
+
+        // — Surface particles: batched fill —
+        ctx.fillStyle = 'rgba(255,255,255,0.44)';
+        ctx.beginPath();
+        for (let i = 0; i < S; i++) {
+            ctx.moveTo(spx[i] + spr[i], spy[i]);
+            ctx.arc(spx[i], spy[i], spr[i], 0, Math.PI * 2);
+        }
+        ctx.fill();
+
+        // — Heartbeat rings —
+        for (let i = rings.length - 1; i >= 0; i--) {
+            const ring = rings[i];
+            ring.r += ring.spd;
+            const t     = ring.r / ring.maxR;
+            // Quadratic ease-out fade: bright at start, smooth tail
+            const alpha = ring.baseAlpha * (1 - t) * (1 - t);
+            ctx.strokeStyle = `rgba(255,255,255,${alpha.toFixed(3)})`;
+            ctx.lineWidth   = ring.lw;
+            ctx.beginPath();
+            ctx.arc(ring.x, ring.y, ring.r, 0, Math.PI * 2);
+            ctx.stroke();
+            if (ring.r >= ring.maxR) rings.splice(i, 1);
+        }
+
+        requestAnimationFrame(tick);
+    }
+
+    requestAnimationFrame(tick);
+}());
+
+// ============================================
 // Google Antigravity-Style Cursor Effect
 // ============================================
 (function initCursorEffect() {
