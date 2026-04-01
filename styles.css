@@ -939,6 +939,431 @@ section {
     transform: translateY(0);
 }
 
+/* ============================================================
+   Experience / Timeline Section
+   ============================================================ */
+.experience {
+    background-color: var(--bg-primary);
+}
+
+.timeline {
+    position: relative;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 18px;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.timeline-item {
+    display: flex;
+    gap: 2.5rem;
+    margin-bottom: 3.5rem;
+    position: relative;
+}
+
+.timeline-item:last-child {
+    margin-bottom: 0;
+}
+
+.timeline-marker {
+    flex-shrink: 0;
+    width: 37px;
+    height: 37px;
+    border-radius: 50%;
+    background-color: var(--apple-blue);
+    border: 3px solid var(--bg-primary);
+    box-shadow: 0 0 0 1px var(--apple-blue);
+    margin-top: 4px;
+    z-index: 1;
+}
+
+.timeline-content {
+    flex: 1;
+    background-color: var(--bg-secondary);
+    border: 0.5px solid rgba(255, 255, 255, 0.1);
+    border-radius: 18px;
+    padding: 2rem 2.5rem;
+    transition: all 0.4s var(--transition-smooth);
+}
+
+.timeline-content:hover {
+    background-color: rgba(255, 255, 255, 0.07);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateX(4px);
+    box-shadow: var(--shadow-medium);
+}
+
+.timeline-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+}
+
+.timeline-role {
+    font-size: 21px;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: -0.022em;
+    line-height: 1.2;
+    margin-bottom: 0.3rem;
+}
+
+.timeline-company {
+    font-size: 17px;
+    color: var(--apple-blue);
+    font-weight: 500;
+    letter-spacing: -0.022em;
+}
+
+.timeline-period {
+    font-size: 14px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    letter-spacing: -0.016em;
+    flex-shrink: 0;
+    padding-top: 4px;
+}
+
+.timeline-bullets {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1.25rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.timeline-bullets li {
+    font-size: 17px;
+    color: var(--text-secondary);
+    letter-spacing: -0.022em;
+    line-height: 1.47059;
+    padding-left: 1.25rem;
+    position: relative;
+}
+
+.timeline-bullets li::before {
+    content: '·';
+    position: absolute;
+    left: 0;
+    color: var(--apple-blue);
+    font-size: 22px;
+    line-height: 1.1;
+}
+
+.timeline-bullets strong {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.timeline-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+/* ============================================================
+   Education Section
+   ============================================================ */
+.education {
+    background-color: var(--bg-secondary);
+}
+
+.education-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+    gap: 2.5rem;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.edu-card {
+    background-color: rgba(255, 255, 255, 0.04);
+    border-radius: 18px;
+    padding: 2.5rem;
+    border: 0.5px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.4s var(--transition-smooth);
+}
+
+.edu-card:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-medium);
+    border-color: rgba(255, 255, 255, 0.2);
+    background-color: rgba(255, 255, 255, 0.07);
+}
+
+.edu-header {
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-start;
+    margin-bottom: 1.75rem;
+}
+
+.edu-icon {
+    font-size: 40px;
+    flex-shrink: 0;
+    line-height: 1;
+}
+
+.edu-school {
+    font-size: 21px;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: -0.022em;
+    margin-bottom: 0.4rem;
+    line-height: 1.2;
+}
+
+.edu-degree {
+    font-size: 17px;
+    color: var(--apple-blue);
+    font-weight: 500;
+    letter-spacing: -0.022em;
+    margin-bottom: 0.4rem;
+}
+
+.edu-period {
+    font-size: 14px;
+    color: var(--text-secondary);
+    letter-spacing: -0.016em;
+}
+
+.edu-details {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.edu-details li {
+    font-size: 16px;
+    color: var(--text-secondary);
+    letter-spacing: -0.022em;
+    line-height: 1.47;
+    padding-left: 1.25rem;
+    position: relative;
+}
+
+.edu-details li::before {
+    content: '·';
+    position: absolute;
+    left: 0;
+    color: var(--apple-blue);
+    font-size: 22px;
+    line-height: 1.1;
+}
+
+/* ============================================================
+   Project Cards – Icon / Gradient Image Treatment
+   ============================================================ */
+.project-ai {
+    background: linear-gradient(135deg, #0d1028 0%, #0a1040 50%, #060b28 100%);
+}
+
+.project-cloud {
+    background: linear-gradient(135deg, #061828 0%, #0a2540 50%, #061828 100%);
+}
+
+.project-finance {
+    background: linear-gradient(135deg, #1a1505 0%, #261c00 50%, #1a1505 100%);
+}
+
+.project-cost {
+    background: linear-gradient(135deg, #061808 0%, #082010 50%, #061808 100%);
+}
+
+.project-social {
+    background: linear-gradient(135deg, #180810 0%, #200a18 50%, #150610 100%);
+}
+
+.project-icon {
+    font-size: 72px;
+    line-height: 1;
+    filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.6));
+    transition: transform 0.4s var(--transition-smooth);
+    z-index: 1;
+}
+
+.project-card:hover .project-icon {
+    transform: scale(1.12);
+}
+
+.project-metric {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    padding: 0.875rem 1.25rem;
+    background: rgba(10, 132, 255, 0.08);
+    border: 0.5px solid rgba(10, 132, 255, 0.25);
+    border-radius: 12px;
+    margin-top: 0.5rem;
+}
+
+.metric-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--apple-blue);
+    letter-spacing: -0.03em;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.metric-label {
+    font-size: 14px;
+    color: var(--text-secondary);
+    letter-spacing: -0.016em;
+    line-height: 1.3;
+}
+
+/* ============================================================
+   Leadership & Community Section
+   ============================================================ */
+.leadership-community {
+    background-color: var(--bg-primary);
+}
+
+.lc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2.5rem;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.lc-card {
+    background-color: var(--bg-secondary);
+    border-radius: 18px;
+    padding: 2.5rem 2rem;
+    border: 0.5px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+    transition: all 0.4s var(--transition-smooth);
+}
+
+.lc-card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-medium);
+    border-color: rgba(255, 255, 255, 0.2);
+    background-color: rgba(255, 255, 255, 0.07);
+}
+
+.lc-icon {
+    font-size: 48px;
+    margin-bottom: 1.25rem;
+    display: block;
+}
+
+.lc-title {
+    font-size: 21px;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: -0.022em;
+    margin-bottom: 0.5rem;
+    line-height: 1.2;
+}
+
+.lc-org {
+    font-size: 15px;
+    color: var(--apple-blue);
+    font-weight: 500;
+    letter-spacing: -0.016em;
+    margin-bottom: 1rem;
+}
+
+.lc-description {
+    font-size: 16px;
+    color: var(--text-secondary);
+    line-height: 1.47;
+    letter-spacing: -0.022em;
+}
+
+/* ============================================================
+   Responsive Additions for New Sections
+   ============================================================ */
+@media (max-width: 768px) {
+    .timeline::before {
+        left: 14px;
+    }
+
+    .timeline-marker {
+        width: 29px;
+        height: 29px;
+        margin-top: 6px;
+    }
+
+    .timeline-item {
+        gap: 1.25rem;
+    }
+
+    .timeline-content {
+        padding: 1.5rem;
+    }
+
+    .timeline-header {
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+
+    .timeline-role {
+        font-size: 19px;
+    }
+
+    .education-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .lc-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .edu-header {
+        gap: 1rem;
+    }
+
+    .edu-icon {
+        font-size: 32px;
+    }
+
+    .project-metric {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .metric-value {
+        font-size: 24px;
+    }
+}
+
+@media (max-width: 480px) {
+    .timeline-content {
+        padding: 1.25rem;
+    }
+
+    .timeline-role {
+        font-size: 17px;
+    }
+
+    .edu-card {
+        padding: 1.75rem 1.5rem;
+    }
+
+    .lc-card {
+        padding: 2rem 1.5rem;
+    }
+}
+
 /* ============================================
    Google Antigravity-Style Cursor Effect
    ============================================ */

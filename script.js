@@ -76,7 +76,7 @@ window.addEventListener('scroll', () => {
 });
 
 // Apple-Style Scroll Reveal Animations
-const revealElements = document.querySelectorAll('.project-card, .skill-category, .stat, .about-text');
+const revealElements = document.querySelectorAll('.project-card, .skill-category, .stat, .about-text, .timeline-item, .edu-card, .lc-card');
 
 const revealObserver = new IntersectionObserver((entries) => {
     entries.forEach((entry, index) => {
