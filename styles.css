@@ -1680,7 +1680,7 @@ footer {
 }
 
 /* Light-gray sections: semi-transparent so canvas shows through */
-.about  { background-color: rgba(245, 245, 247, 0.72); }
+.about  { background-color: rgba(245, 245, 247, 0.56); }
 .skills { background-color: rgba(245, 245, 247, 0.72); }
 .footer { background-color: rgba(245, 245, 247, 0.88); }
 

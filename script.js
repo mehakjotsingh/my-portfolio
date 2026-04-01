@@ -336,53 +336,77 @@ window.addEventListener('scroll', () => {
     const BLOB_RX = 360;
     const BLOB_RY = 290;
 
-    // ── LAYER 1: Dust inside cursor-following blob ────────────────────────────
-    const D    = 2200;
-    const dpx  = new Float32Array(D);
-    const dpy  = new Float32Array(D);
-    const dhx  = new Float32Array(D);
-    const dhy  = new Float32Array(D);
-    const dpvx = new Float32Array(D);
-    const dpvy = new Float32Array(D);
-    const dpr  = new Float32Array(D);
+    function createLayer(count, rMin, rMax, idleDrift) {
+        const px = new Float32Array(count);
+        const py = new Float32Array(count);
+        const hx = new Float32Array(count);
+        const hy = new Float32Array(count);
+        const vx = new Float32Array(count);
+        const vy = new Float32Array(count);
+        const pr = new Float32Array(count);
+        const phase = new Float32Array(count);
+        const twinkle = new Float32Array(count);
+        const edge = new Float32Array(count);
 
-    for (let i = 0; i < D; i++) {
-        const a = Math.random() * Math.PI * 2;
-        const r = Math.sqrt(Math.random());
-        const shape = 0.85 + Math.random() * 0.25;
-        dhx[i] = Math.cos(a) * r * BLOB_RX * shape;
-        dhy[i] = Math.sin(a) * r * BLOB_RY * (1.0 - Math.cos(a * 2) * 0.08);
-        dpx[i]  = blobX + dhx[i];
-        dpy[i]  = blobY + dhy[i];
-        dpvx[i] = (Math.random() - 0.5) * 0.18;
-        dpvy[i] = (Math.random() - 0.5) * 0.18;
-        dpr[i]  = Math.random() * 0.75 + 0.15;
+        for (let i = 0; i < count; i++) {
+            const a = Math.random() * Math.PI * 2;
+            const radial = Math.sqrt(Math.random());
+            const shape = 0.86 + Math.random() * 0.22;
+            const ox = Math.cos(a) * radial * BLOB_RX * shape;
+            const oy = Math.sin(a) * radial * BLOB_RY * (1.0 - Math.cos(a * 2) * 0.08);
+
+            hx[i] = ox;
+            hy[i] = oy;
+            px[i] = blobX + ox;
+            py[i] = blobY + oy;
+            vx[i] = (Math.random() - 0.5) * idleDrift;
+            vy[i] = (Math.random() - 0.5) * idleDrift;
+            pr[i] = rMin + Math.random() * (rMax - rMin);
+            phase[i] = Math.random() * Math.PI * 2;
+            twinkle[i] = Math.random() < 0.08 ? 1 : 0;
+            edge[i] = Math.min(
+                1,
+                Math.sqrt((ox * ox) / (BLOB_RX * BLOB_RX) + (oy * oy) / (BLOB_RY * BLOB_RY))
+            );
+        }
+
+        return { count, px, py, hx, hy, vx, vy, pr, phase, twinkle, edge };
     }
 
-    // ── LAYER 2: Constellation stars inside cursor-following blob ────────────
-    const S    = 620;
-    const spx  = new Float32Array(S);
-    const spy  = new Float32Array(S);
-    const shx  = new Float32Array(S);
-    const shy  = new Float32Array(S);
-    const spvx = new Float32Array(S);
-    const spvy = new Float32Array(S);
-    const spr  = new Float32Array(S);
-    const sph  = new Float32Array(S);
+    // Denser star field while preserving sparse depth cues.
+    const dust = createLayer(760, 0.22, 0.78, 0.08);
+    const starsFar = createLayer(235, 0.55, 1.05, 0.06);
+    const starsMid = createLayer(155, 0.95, 1.45, 0.08);
+    const starsNear = createLayer(56, 1.6, 2.25, 0.1);
+    const starLayers = [starsFar, starsMid, starsNear];
 
-    for (let i = 0; i < S; i++) {
-        const a = Math.random() * Math.PI * 2;
-        const r = Math.sqrt(Math.random());
-        const shape = 0.86 + Math.random() * 0.24;
-        shx[i]  = Math.cos(a) * r * BLOB_RX * shape;
-        shy[i]  = Math.sin(a) * r * BLOB_RY * (1.0 - Math.cos(a * 2) * 0.08);
-        spx[i]  = blobX + shx[i];
-        spy[i]  = blobY + shy[i];
-        spvx[i] = (Math.random() - 0.5) * 0.15;
-        spvy[i] = (Math.random() - 0.5) * 0.15;
-        spr[i]  = Math.random() * 1.4 + 0.65;
-        sph[i]  = Math.random() * Math.PI * 2;
+    // Text-safe zones: stars dim subtly around foreground text.
+    let textRects = [];
+    function updateTextRects() {
+        const selectors = [
+            '.hero-description', '.about-text p', '.jtl-details',
+            '.project-description', '.metric-label', '.skill-items',
+            '.lc-description', '.contact-description', '.contact-form',
+            '.footer p', '.footer-links'
+        ].join(', ');
+        const nodes = document.querySelectorAll(selectors);
+        const rects = [];
+        nodes.forEach((node) => {
+            const r = node.getBoundingClientRect();
+            if (r.width < 40 || r.height < 20) return;
+            rects.push({
+                l: r.left - 18,
+                t: r.top - 14,
+                r: r.right + 18,
+                b: r.bottom + 14,
+            });
+        });
+        textRects = rects;
     }
+    updateTextRects();
+    window.addEventListener('resize', updateTextRects);
+    window.addEventListener('scroll', updateTextRects, { passive: true });
+    setInterval(updateTextRects, 900);
 
     // ── TRAVELING PRESSURE WAVES ──────────────────────────────────────────────
     // Waves physically push particles then spring brings them home — no drawn rings.
@@ -413,15 +437,19 @@ window.addEventListener('scroll', () => {
 
     // ── CONSTANTS ────────────────────────────────────────────────────────────
     const WAVE_BAND = 40;
-    const STAR_RETURN_K = 0.0032;
+    const STAR_RETURN_K = 0.0034;
 
     let t = 0;
 
     // ── MAIN LOOP ─────────────────────────────────────────────────────────────
     function tick() {
         t += 0.010;
+        const preX = blobX;
+        const preY = blobY;
         blobX += (blobTargetX - blobX) * 0.14;
         blobY += (blobTargetY - blobY) * 0.14;
+        const blobSpeed = Math.hypot(blobX - preX, blobY - preY);
+        const velocityBoost = Math.min(1, blobSpeed / 8);
         ctx.clearRect(0, 0, W, H);
 
         // ── 1. Advance waves + apply forces to particles ──────────────────────
@@ -432,91 +460,109 @@ window.addEventListener('scroll', () => {
             const inner2 = inner * inner;
             const outer2 = w.r   * w.r;
 
-            for (let i = 0; i < S; i++) {
-                const ex = spx[i] - w.x;
-                const ey = spy[i] - w.y;
-                const d2 = ex * ex + ey * ey;
-                if (d2 > inner2 && d2 < outer2 && d2 > 0.01) {
-                    const d   = Math.sqrt(d2);
-                    const rel = (d - inner) / WAVE_BAND;
-                    // Half-sine: smooth inward nudge only, no outward push
-                    const pull = Math.sin(rel * Math.PI);
-                    spvx[i] -= (ex / d) * pull * w.force;
-                    spvy[i] -= (ey / d) * pull * w.force;
+            for (const layer of starLayers) {
+                for (let i = 0; i < layer.count; i++) {
+                    const ex = layer.px[i] - w.x;
+                    const ey = layer.py[i] - w.y;
+                    const d2 = ex * ex + ey * ey;
+                    if (d2 > inner2 && d2 < outer2 && d2 > 0.01) {
+                        const d = Math.sqrt(d2);
+                        const rel = (d - inner) / WAVE_BAND;
+                        const pull = Math.sin(rel * Math.PI);
+                        layer.vx[i] -= (ex / d) * pull * w.force;
+                        layer.vy[i] -= (ey / d) * pull * w.force;
+                    }
                 }
             }
 
-            for (let i = 0; i < D; i++) {
-                const ex = dpx[i] - w.x;
-                const ey = dpy[i] - w.y;
+            for (let i = 0; i < dust.count; i++) {
+                const ex = dust.px[i] - w.x;
+                const ey = dust.py[i] - w.y;
                 const d2 = ex * ex + ey * ey;
                 if (d2 > inner2 && d2 < outer2 && d2 > 0.01) {
                     const d   = Math.sqrt(d2);
                     const rel = (d - inner) / WAVE_BAND;
-                    const bob = Math.sin(rel * Math.PI * 2);
                     const pull = Math.sin(rel * Math.PI);
-                    dpvx[i] -= (ex / d) * pull * w.force * 0.25;
-                    dpvy[i] -= (ey / d) * pull * w.force * 0.25;
+                    dust.vx[i] -= (ex / d) * pull * w.force * 0.18;
+                    dust.vy[i] -= (ey / d) * pull * w.force * 0.18;
                 }
             }
 
             if (w.r >= w.maxR) waves.splice(wi, 1);
         }
 
-        // ── 2. Dust: turbulence + wrap + batched draw ─────────────────────────
-        const dustAlpha = 0.13 + Math.sin(t * 0.5) * 0.055;
-        ctx.fillStyle = `rgba(160,158,170,${dustAlpha.toFixed(3)})`;
+        // ── 2. Dust layer: smooth drift and soft blob-edge falloff ────────────
+        const dustAlpha = 0.1 + Math.sin(t * 0.36) * 0.03;
+        ctx.fillStyle = `rgba(128,142,162,${dustAlpha.toFixed(3)})`;
         ctx.beginPath();
-        for (let i = 0; i < D; i++) {
-            const targetX = blobX + dhx[i];
-            const targetY = blobY + dhy[i];
-            dpvx[i] += (targetX - dpx[i]) * 0.0022;
-            dpvy[i] += (targetY - dpy[i]) * 0.0022;
-            dpvx[i] += (Math.random() - 0.5) * 0.003;
-            dpvy[i] += (Math.random() - 0.5) * 0.003;
-            dpvx[i] *= 0.992;
-            dpvy[i] *= 0.992;
-            dpx[i]  += dpvx[i];
-            dpy[i]  += dpvy[i];
-            ctx.moveTo(dpx[i] + dpr[i], dpy[i]);
-            ctx.arc(dpx[i], dpy[i], dpr[i], 0, Math.PI * 2);
+        for (let i = 0; i < dust.count; i++) {
+            const targetX = blobX + dust.hx[i];
+            const targetY = blobY + dust.hy[i];
+            const drift = Math.sin(t * 0.55 + dust.phase[i]) * 0.015;
+            dust.vx[i] += (targetX - dust.px[i]) * 0.0022 + drift * 0.35;
+            dust.vy[i] += (targetY - dust.py[i]) * 0.0022 - drift * 0.25;
+            dust.vx[i] *= 0.986;
+            dust.vy[i] *= 0.986;
+            dust.px[i] += dust.vx[i];
+            dust.py[i] += dust.vy[i];
+            const edgeFade = Math.max(0.12, 1 - Math.max(0, (dust.edge[i] - 0.78) / 0.22));
+            ctx.moveTo(dust.px[i] + dust.pr[i] * edgeFade, dust.py[i]);
+            ctx.arc(dust.px[i], dust.py[i], dust.pr[i] * edgeFade, 0, Math.PI * 2);
         }
         ctx.fill();
 
-        // ── 3. Constellation stars: ripple + gentle return to home ───────────
-        for (let i = 0; i < S; i++) {
-            // Gentle restore force prevents long-term drift/collection.
-            const targetX = blobX + shx[i];
-            const targetY = blobY + shy[i];
-            spvx[i] += (targetX - spx[i]) * STAR_RETURN_K;
-            spvy[i] += (targetY - spy[i]) * STAR_RETURN_K;
-
-            // Micro-turbulence — barely perceptible idle life
-            spvx[i] += (Math.random() - 0.5) * 0.003;
-            spvy[i] += (Math.random() - 0.5) * 0.003;
-
-            // Tight damping — star barely moves, settles in ~0.5 s
-            spvx[i] *= 0.955;
-            spvy[i] *= 0.955;
-            spx[i]  += spvx[i];
-            spy[i]  += spvy[i];
-
-            // Soft safety bounds.
-            if (spx[i] < -80) spx[i] = -80;
-            if (spx[i] > W + 80) spx[i] = W + 80;
-            if (spy[i] < -80) spy[i] = -80;
-            if (spy[i] > H + 80) spy[i] = H + 80;
+        // ── 3. Stars: depth layers, smooth motion, restrained twinkle ─────────
+        function textFadeAt(x, y) {
+            let fade = 1;
+            for (let i = 0; i < textRects.length; i++) {
+                const z = textRects[i];
+                const dx = x < z.l ? z.l - x : (x > z.r ? x - z.r : 0);
+                const dy = y < z.t ? z.t - y : (y > z.b ? y - z.b : 0);
+                const d = Math.hypot(dx, dy);
+                if (d === 0) {
+                    fade = Math.min(fade, 0.38);
+                } else if (d < 70) {
+                    const k = d / 70;
+                    fade = Math.min(fade, 0.38 + k * 0.62);
+                }
+            }
+            return fade;
         }
 
-        // ── 4. Star dots — batched fill with global breathing ────────────────
-        const surfAlpha = 0.34 + Math.sin(t * 0.6 + 0.4) * 0.08;
-        ctx.fillStyle = `rgba(70,120,175,${surfAlpha.toFixed(3)})`;
-        ctx.beginPath();
-        for (let i = 0; i < S; i++) {
-            ctx.moveTo(spx[i] + spr[i], spy[i]);
-            ctx.arc(spx[i], spy[i], spr[i], 0, Math.PI * 2);
+        const layerBase = [
+            { rgb: '92,125,162', base: 0.16, breathe: 0.035, tighten: 0.92 },
+            { rgb: '78,122,178', base: 0.22, breathe: 0.04, tighten: 0.94 },
+            { rgb: '64,116,182', base: 0.29, breathe: 0.05, tighten: 0.96 },
+        ];
+
+        for (let li = 0; li < starLayers.length; li++) {
+            const layer = starLayers[li];
+            const style = layerBase[li];
+            for (let i = 0; i < layer.count; i++) {
+                const targetX = blobX + layer.hx[i];
+                const targetY = blobY + layer.hy[i];
+                const driftX = Math.sin(t * 0.42 + layer.phase[i]) * 0.02;
+                const driftY = Math.cos(t * 0.37 + layer.phase[i] * 0.9) * 0.018;
+                layer.vx[i] += (targetX - layer.px[i]) * STAR_RETURN_K + driftX;
+                layer.vy[i] += (targetY - layer.py[i]) * STAR_RETURN_K + driftY;
+                layer.vx[i] += velocityBoost * 0.004 * (1 - layer.edge[i]);
+                layer.vy[i] += velocityBoost * 0.003 * (1 - layer.edge[i]);
+                layer.vx[i] *= style.tighten;
+                layer.vy[i] *= style.tighten;
+                layer.px[i] += layer.vx[i];
+                layer.py[i] += layer.vy[i];
+
+                const edgeFade = Math.max(0.1, 1 - Math.max(0, (layer.edge[i] - 0.8) / 0.2));
+                const twinkle = layer.twinkle[i] ? (1 + Math.sin(t * 1.4 + layer.phase[i]) * 0.1) : 1;
+                const textFade = textFadeAt(layer.px[i], layer.py[i]);
+                const alpha = (style.base + Math.sin(t * 0.58 + layer.phase[i]) * style.breathe) * edgeFade * twinkle * textFade;
+
+                ctx.fillStyle = `rgba(${style.rgb},${Math.max(0.05, Math.min(0.5, alpha)).toFixed(3)})`;
+                ctx.beginPath();
+                ctx.arc(layer.px[i], layer.py[i], layer.pr[i] * edgeFade, 0, Math.PI * 2);
+                ctx.fill();
+            }
         }
-        ctx.fill();
 
         requestAnimationFrame(tick);
     }
