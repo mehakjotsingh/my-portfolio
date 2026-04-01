@@ -65,18 +65,18 @@ window.addEventListener('scroll', () => {
     const currentScroll = window.pageYOffset;
     
     if (currentScroll > 50) {
-        navbar.style.backgroundColor = 'rgba(0, 0, 0, 0.95)';
-        navbar.style.borderBottomColor = 'rgba(255, 255, 255, 0.15)';
+        navbar.style.backgroundColor = 'rgba(255, 255, 255, 0.97)';
+        navbar.style.borderBottomColor = 'rgba(0, 0, 0, 0.12)';
     } else {
-        navbar.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-        navbar.style.borderBottomColor = 'rgba(255, 255, 255, 0.1)';
+        navbar.style.backgroundColor = 'rgba(255, 255, 255, 0.85)';
+        navbar.style.borderBottomColor = 'rgba(0, 0, 0, 0.1)';
     }
     
     lastScroll = currentScroll;
 });
 
 // Apple-Style Scroll Reveal Animations
-const revealElements = document.querySelectorAll('.project-card, .skill-category, .stat, .about-text, .lc-card, .jtl-node');
+const revealElements = document.querySelectorAll('.project-card, .skill-category, .stat, .about-text, .lc-card');
 
 const revealObserver = new IntersectionObserver((entries) => {
     entries.forEach((entry, index) => {
@@ -290,12 +290,11 @@ window.addEventListener('scroll', () => {
 });
 
 // ============================================
-// Canvas: Particle Field + Heartbeat Rings
+// Canvas: Living Particle Field + Ripple Heartbeat
 // ============================================
 (function initCanvasEffects() {
     if (!window.matchMedia('(pointer: fine)').matches) return;
 
-    // Create canvas and prepend behind all DOM content
     const canvas = document.createElement('canvas');
     canvas.id = 'fx-canvas';
     document.body.prepend(canvas);
@@ -309,152 +308,215 @@ window.addEventListener('scroll', () => {
         H = canvas.height = window.innerHeight;
     });
 
-    // ── Mouse position ──────────────────────────────────────────────────────
+    // ── Mouse ────────────────────────────────────────────────────────────────
     let mx = null, my = null;
-    document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+    let blobX = W * 0.5, blobY = H * 0.5;
+    let blobTargetX = blobX, blobTargetY = blobY;
+    let lastEmitX = 0, lastEmitY = 0, lastEmitTime = 0;
+
+    document.addEventListener('mousemove', e => {
+        mx = e.clientX;
+        my = e.clientY;
+        blobTargetX = mx;
+        blobTargetY = my;
+        // Emit ripple from cursor as it moves (throttled by distance + time)
+        const now = Date.now();
+        const dx  = mx - lastEmitX;
+        const dy  = my - lastEmitY;
+        if (now - lastEmitTime > 320 && (dx * dx + dy * dy) > 900) {
+            emitRipple();
+            lastEmitX    = mx;
+            lastEmitY    = my;
+            lastEmitTime = now;
+        }
+    });
     document.addEventListener('mouseleave', () => { mx = null; });
 
-    // ── LAYER 1: Dust particles (1 100, tiny, no mouse interaction) ──────────
-    // Gives the "thousands of particles" density without heavy compute cost.
-    const D = 1100;
+    // ── CURSOR-FOLLOWING BLOB GEOMETRY ────────────────────────────────────────
+    const BLOB_RX = 360;
+    const BLOB_RY = 290;
+
+    // ── LAYER 1: Dust inside cursor-following blob ────────────────────────────
+    const D    = 2200;
     const dpx  = new Float32Array(D);
     const dpy  = new Float32Array(D);
+    const dhx  = new Float32Array(D);
+    const dhy  = new Float32Array(D);
     const dpvx = new Float32Array(D);
     const dpvy = new Float32Array(D);
     const dpr  = new Float32Array(D);
 
     for (let i = 0; i < D; i++) {
-        dpx[i]  = Math.random() * W;
-        dpy[i]  = Math.random() * H;
+        const a = Math.random() * Math.PI * 2;
+        const r = Math.sqrt(Math.random());
+        const shape = 0.85 + Math.random() * 0.25;
+        dhx[i] = Math.cos(a) * r * BLOB_RX * shape;
+        dhy[i] = Math.sin(a) * r * BLOB_RY * (1.0 - Math.cos(a * 2) * 0.08);
+        dpx[i]  = blobX + dhx[i];
+        dpy[i]  = blobY + dhy[i];
         dpvx[i] = (Math.random() - 0.5) * 0.18;
         dpvy[i] = (Math.random() - 0.5) * 0.18;
         dpr[i]  = Math.random() * 0.75 + 0.15;
     }
 
-    // ── LAYER 2: Surface particles (300, mouse-reactive, constellation lines) ─
-    const S = 300;
+    // ── LAYER 2: Constellation stars inside cursor-following blob ────────────
+    const S    = 620;
     const spx  = new Float32Array(S);
     const spy  = new Float32Array(S);
+    const shx  = new Float32Array(S);
+    const shy  = new Float32Array(S);
     const spvx = new Float32Array(S);
     const spvy = new Float32Array(S);
     const spr  = new Float32Array(S);
+    const sph  = new Float32Array(S);
 
     for (let i = 0; i < S; i++) {
-        spx[i]  = Math.random() * W;
-        spy[i]  = Math.random() * H;
-        spvx[i] = (Math.random() - 0.5) * 0.45;
-        spvy[i] = (Math.random() - 0.5) * 0.45;
+        const a = Math.random() * Math.PI * 2;
+        const r = Math.sqrt(Math.random());
+        const shape = 0.86 + Math.random() * 0.24;
+        shx[i]  = Math.cos(a) * r * BLOB_RX * shape;
+        shy[i]  = Math.sin(a) * r * BLOB_RY * (1.0 - Math.cos(a * 2) * 0.08);
+        spx[i]  = blobX + shx[i];
+        spy[i]  = blobY + shy[i];
+        spvx[i] = (Math.random() - 0.5) * 0.15;
+        spvy[i] = (Math.random() - 0.5) * 0.15;
         spr[i]  = Math.random() * 1.4 + 0.65;
+        sph[i]  = Math.random() * Math.PI * 2;
     }
 
-    // ── Heartbeat rings ─────────────────────────────────────────────────────
-    // Each ring: { x, y, r, maxR, baseAlpha, spd, lw }
-    const rings = [];
+    // ── TRAVELING PRESSURE WAVES ──────────────────────────────────────────────
+    // Waves physically push particles then spring brings them home — no drawn rings.
+    // Each wave: { x, y, r, maxR, spd, force }
+    const waves = [];
 
-    function emitBeat() {
+    // 5 concentric rings, each ~62% weaker — staggered so they visually separate.
+    const RIPPLE_SERIES = [
+        { delay:   0, force: 0.18, maxR: 300 },
+        { delay: 170, force: 0.11, maxR: 258 },
+        { delay: 340, force: 0.07, maxR: 216 },
+        { delay: 510, force: 0.04, maxR: 174 },
+        { delay: 680, force: 0.02, maxR: 132 },
+    ];
+
+    function emitRipple() {
         if (mx === null) return;
-        // Lub — main beat (larger, slower, brighter)
-        rings.push({ x: mx, y: my, r: 6, maxR: 215, baseAlpha: 0.55, spd: 2.6, lw: 1.6 });
-        // Dub — echo beat (smaller, faster, 200 ms after)
-        setTimeout(() => {
-            if (mx === null) return;
-            rings.push({ x: mx, y: my, r: 6, maxR: 128, baseAlpha: 0.38, spd: 3.1, lw: 1.0 });
-        }, 200);
+        const cx = mx, cy = my; // fix origin at cursor position when fired
+        RIPPLE_SERIES.forEach(({ delay, force, maxR }) => {
+            setTimeout(() => {
+                waves.push({ x: cx, y: cy, r: 0, maxR, spd: 2.2, force });
+            }, delay);
+        });
     }
 
-    // Emit at ~70 BPM (857 ms); slight initial delay so first beat is intentional
-    setInterval(emitBeat, 857);
-    setTimeout(emitBeat, 500);
+    setInterval(emitRipple, 857); // 70 BPM
+    setTimeout(emitRipple, 600);
 
-    // ── Constants ───────────────────────────────────────────────────────────
-    const REPEL_R  = 130;
-    const REPEL_R2 = REPEL_R * REPEL_R;
-    const CONN_D   = 88;
-    const CONN_D2  = CONN_D * CONN_D;
+    // ── CONSTANTS ────────────────────────────────────────────────────────────
+    const WAVE_BAND = 40;
+    const STAR_RETURN_K = 0.0032;
 
-    // ── Main animation loop ─────────────────────────────────────────────────
+    let t = 0;
+
+    // ── MAIN LOOP ─────────────────────────────────────────────────────────────
     function tick() {
+        t += 0.010;
+        blobX += (blobTargetX - blobX) * 0.14;
+        blobY += (blobTargetY - blobY) * 0.14;
         ctx.clearRect(0, 0, W, H);
 
-        // — Dust particles: update + single batched fill call —
-        ctx.fillStyle = 'rgba(255,255,255,0.20)';
+        // ── 1. Advance waves + apply forces to particles ──────────────────────
+        for (let wi = waves.length - 1; wi >= 0; wi--) {
+            const w      = waves[wi];
+            w.r         += w.spd;
+            const inner  = w.r - WAVE_BAND;
+            const inner2 = inner * inner;
+            const outer2 = w.r   * w.r;
+
+            for (let i = 0; i < S; i++) {
+                const ex = spx[i] - w.x;
+                const ey = spy[i] - w.y;
+                const d2 = ex * ex + ey * ey;
+                if (d2 > inner2 && d2 < outer2 && d2 > 0.01) {
+                    const d   = Math.sqrt(d2);
+                    const rel = (d - inner) / WAVE_BAND;
+                    // Half-sine: smooth inward nudge only, no outward push
+                    const pull = Math.sin(rel * Math.PI);
+                    spvx[i] -= (ex / d) * pull * w.force;
+                    spvy[i] -= (ey / d) * pull * w.force;
+                }
+            }
+
+            for (let i = 0; i < D; i++) {
+                const ex = dpx[i] - w.x;
+                const ey = dpy[i] - w.y;
+                const d2 = ex * ex + ey * ey;
+                if (d2 > inner2 && d2 < outer2 && d2 > 0.01) {
+                    const d   = Math.sqrt(d2);
+                    const rel = (d - inner) / WAVE_BAND;
+                    const bob = Math.sin(rel * Math.PI * 2);
+                    const pull = Math.sin(rel * Math.PI);
+                    dpvx[i] -= (ex / d) * pull * w.force * 0.25;
+                    dpvy[i] -= (ey / d) * pull * w.force * 0.25;
+                }
+            }
+
+            if (w.r >= w.maxR) waves.splice(wi, 1);
+        }
+
+        // ── 2. Dust: turbulence + wrap + batched draw ─────────────────────────
+        const dustAlpha = 0.13 + Math.sin(t * 0.5) * 0.055;
+        ctx.fillStyle = `rgba(160,158,170,${dustAlpha.toFixed(3)})`;
         ctx.beginPath();
         for (let i = 0; i < D; i++) {
-            dpx[i] += dpvx[i];
-            dpy[i] += dpvy[i];
-            if (dpx[i] < 0) dpx[i] = W;
-            if (dpx[i] > W) dpx[i] = 0;
-            if (dpy[i] < 0) dpy[i] = H;
-            if (dpy[i] > H) dpy[i] = 0;
+            const targetX = blobX + dhx[i];
+            const targetY = blobY + dhy[i];
+            dpvx[i] += (targetX - dpx[i]) * 0.0022;
+            dpvy[i] += (targetY - dpy[i]) * 0.0022;
+            dpvx[i] += (Math.random() - 0.5) * 0.003;
+            dpvy[i] += (Math.random() - 0.5) * 0.003;
+            dpvx[i] *= 0.992;
+            dpvy[i] *= 0.992;
+            dpx[i]  += dpvx[i];
+            dpy[i]  += dpvy[i];
             ctx.moveTo(dpx[i] + dpr[i], dpy[i]);
             ctx.arc(dpx[i], dpy[i], dpr[i], 0, Math.PI * 2);
         }
         ctx.fill();
 
-        // — Surface particles: update with mouse repulsion —
+        // ── 3. Constellation stars: ripple + gentle return to home ───────────
         for (let i = 0; i < S; i++) {
-            if (mx !== null) {
-                const ex = spx[i] - mx;
-                const ey = spy[i] - my;
-                const d2 = ex * ex + ey * ey;
-                if (d2 < REPEL_R2 && d2 > 0.01) {
-                    const d     = Math.sqrt(d2);
-                    const force = (REPEL_R - d) / REPEL_R * 0.58;
-                    spvx[i] += (ex / d) * force;
-                    spvy[i] += (ey / d) * force;
-                }
-            }
-            spvx[i] *= 0.965;
-            spvy[i] *= 0.965;
+            // Gentle restore force prevents long-term drift/collection.
+            const targetX = blobX + shx[i];
+            const targetY = blobY + shy[i];
+            spvx[i] += (targetX - spx[i]) * STAR_RETURN_K;
+            spvy[i] += (targetY - spy[i]) * STAR_RETURN_K;
+
+            // Micro-turbulence — barely perceptible idle life
+            spvx[i] += (Math.random() - 0.5) * 0.003;
+            spvy[i] += (Math.random() - 0.5) * 0.003;
+
+            // Tight damping — star barely moves, settles in ~0.5 s
+            spvx[i] *= 0.955;
+            spvy[i] *= 0.955;
             spx[i]  += spvx[i];
             spy[i]  += spvy[i];
-            if (spx[i] < 0) spx[i] = W;
-            if (spx[i] > W) spx[i] = 0;
-            if (spy[i] < 0) spy[i] = H;
-            if (spy[i] > H) spy[i] = 0;
+
+            // Soft safety bounds.
+            if (spx[i] < -80) spx[i] = -80;
+            if (spx[i] > W + 80) spx[i] = W + 80;
+            if (spy[i] < -80) spy[i] = -80;
+            if (spy[i] > H + 80) spy[i] = H + 80;
         }
 
-        // — Constellation lines between nearby surface particles —
-        ctx.lineWidth = 0.5;
-        for (let i = 0; i < S; i++) {
-            for (let j = i + 1; j < S; j++) {
-                const ex = spx[i] - spx[j];
-                const ey = spy[i] - spy[j];
-                const d2 = ex * ex + ey * ey;
-                if (d2 < CONN_D2) {
-                    const alpha = 0.20 * (1 - Math.sqrt(d2) / CONN_D);
-                    ctx.strokeStyle = `rgba(255,255,255,${alpha.toFixed(3)})`;
-                    ctx.beginPath();
-                    ctx.moveTo(spx[i], spy[i]);
-                    ctx.lineTo(spx[j], spy[j]);
-                    ctx.stroke();
-                }
-            }
-        }
-
-        // — Surface particles: batched fill —
-        ctx.fillStyle = 'rgba(255,255,255,0.44)';
+        // ── 4. Star dots — batched fill with global breathing ────────────────
+        const surfAlpha = 0.34 + Math.sin(t * 0.6 + 0.4) * 0.08;
+        ctx.fillStyle = `rgba(70,120,175,${surfAlpha.toFixed(3)})`;
         ctx.beginPath();
         for (let i = 0; i < S; i++) {
             ctx.moveTo(spx[i] + spr[i], spy[i]);
             ctx.arc(spx[i], spy[i], spr[i], 0, Math.PI * 2);
         }
         ctx.fill();
-
-        // — Heartbeat rings —
-        for (let i = rings.length - 1; i >= 0; i--) {
-            const ring = rings[i];
-            ring.r += ring.spd;
-            const t     = ring.r / ring.maxR;
-            // Quadratic ease-out fade: bright at start, smooth tail
-            const alpha = ring.baseAlpha * (1 - t) * (1 - t);
-            ctx.strokeStyle = `rgba(255,255,255,${alpha.toFixed(3)})`;
-            ctx.lineWidth   = ring.lw;
-            ctx.beginPath();
-            ctx.arc(ring.x, ring.y, ring.r, 0, Math.PI * 2);
-            ctx.stroke();
-            if (ring.r >= ring.maxR) rings.splice(i, 1);
-        }
 
         requestAnimationFrame(tick);
     }
@@ -466,71 +528,54 @@ window.addEventListener('scroll', () => {
 // Interactive Journey Timeline
 // ============================================
 (function initJourneyTimeline() {
+    const section = document.getElementById('journey');
     const timeline = document.getElementById('journeyTimeline');
-    if (!timeline) return;
+    if (!timeline || !section) return;
 
     const nodes = timeline.querySelectorAll('.jtl-node');
+    let hasAnimated = false;
 
-    function closeAll(except) {
-        nodes.forEach(n => {
-            if (n !== except) {
-                n.classList.remove('open');
-                const dot = n.querySelector('.jtl-dot');
-                if (dot) dot.setAttribute('aria-expanded', 'false');
-            }
+    // Tap-to-expand on mobile / touch
+    if (window.matchMedia('(max-width: 768px)').matches || window.matchMedia('(hover: none)').matches) {
+        function closeAll(except) {
+            nodes.forEach(n => { if (n !== except) n.classList.remove('open'); });
+        }
+
+        nodes.forEach(node => {
+            node.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const wasOpen = node.classList.contains('open');
+                closeAll(node);
+                node.classList.toggle('open', !wasOpen);
+            });
+        });
+
+        document.addEventListener('click', () => closeAll(null));
+    }
+
+    function runEntrance() {
+        if (hasAnimated) return;
+        hasAnimated = true;
+
+        timeline.classList.add('jtl--animated');
+
+        nodes.forEach((node, i) => {
+            setTimeout(() => {
+                node.classList.add('jtl-node--visible');
+            }, 600 + i * 220);
         });
     }
 
-    nodes.forEach(node => {
-        const dot = node.querySelector('.jtl-dot');
-        const card = node.querySelector('.jtl-card');
-        if (!dot) return;
-
-        function toggle(e) {
-            e.stopPropagation();
-            const isOpen = node.classList.contains('open');
-            closeAll(node);
-            if (!isOpen) {
-                node.classList.add('open');
-                dot.setAttribute('aria-expanded', 'true');
-            } else {
-                node.classList.remove('open');
-                dot.setAttribute('aria-expanded', 'false');
-            }
-        }
-
-        dot.addEventListener('click', toggle);
-
-        if (card) {
-            card.addEventListener('click', (e) => e.stopPropagation());
-        }
-    });
-
-    document.addEventListener('click', () => closeAll(null));
-
-    // Animate the glowing rail line when the section scrolls into view
-    const observer = new IntersectionObserver((entries) => {
+    const obs = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
-                timeline.classList.add('jtl--animated');
-                observer.unobserve(timeline);
+                runEntrance();
+                obs.unobserve(section);
             }
         });
-    }, { threshold: 0.15 });
+    }, { threshold: 0.5 });
 
-    observer.observe(timeline);
-
-    // Keyboard support
-    nodes.forEach(node => {
-        const dot = node.querySelector('.jtl-dot');
-        if (!dot) return;
-        dot.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                dot.click();
-            }
-        });
-    });
+    obs.observe(section);
 }());
 
 // ============================================
