@@ -385,7 +385,7 @@ window.addEventListener('scroll', () => {
     function updateTextRects() {
         const selectors = [
             '.hero-description', '.about-text p', '.jtl-details',
-            '.project-description', '.metric-label', '.skill-items',
+            '.project-bullets', '.metric-label', '.skill-items',
             '.lc-description', '.contact-description', '.contact-form',
             '.footer p', '.footer-links'
         ].join(', ');

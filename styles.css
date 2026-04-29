@@ -556,6 +556,10 @@ section {
 }
 
 .project-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
     background-color: transparent;
     border-radius: 0;
     overflow: visible;
@@ -563,7 +567,7 @@ section {
     transition: opacity 0.3s var(--transition-smooth);
     border: 0;
     border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-    padding-bottom: 1.5rem;
+    padding: 1rem 0 1.5rem;
 }
 
 .project-card:hover {
@@ -571,43 +575,31 @@ section {
     box-shadow: none;
 }
 
-.project-image {
-    width: 100%;
-    height: 220px;
-    overflow: hidden;
-    background: transparent;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 28px;
-    /* Blend edges into the section background */
-    mask-image: radial-gradient(ellipse 88% 82% at center, black 56%, rgba(0, 0, 0, 0.72) 74%, transparent 100%);
-    -webkit-mask-image: radial-gradient(ellipse 88% 82% at center, black 56%, rgba(0, 0, 0, 0.72) 74%, transparent 100%);
-}
-
-.project-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center;
-    transition: transform 0.5s var(--transition-smooth);
+.project-emoji {
+    font-size: 48px;
+    line-height: 1;
+    margin-bottom: 1.25rem;
     display: block;
 }
 
-.project-card:hover .project-image img {
-    transform: scale(1.05);
+.project-bullets {
+    margin: 0 auto 1.25rem;
+    padding-left: 1.25rem;
+    max-width: 36rem;
+    text-align: left;
+    color: var(--text-secondary);
+    font-size: 16px;
+    line-height: 1.47;
+    letter-spacing: -0.022em;
+    list-style-type: disc;
 }
 
-.project-image::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: radial-gradient(ellipse at center, transparent 38%, rgba(255, 255, 255, 0.46) 100%);
-    pointer-events: none;
+.project-bullets li {
+    margin-bottom: 0.5rem;
+}
+
+.project-bullets li:last-child {
+    margin-bottom: 0;
 }
 
 .project-placeholder {
@@ -623,7 +615,9 @@ section {
 }
 
 .project-content {
-    padding: 1.25rem 0 0;
+    padding: 0;
+    width: 100%;
+    max-width: 42rem;
 }
 
 .project-title {
@@ -633,14 +627,6 @@ section {
     color: var(--text-primary);
     letter-spacing: -0.022em;
     line-height: 1.14286;
-}
-
-.project-description {
-    color: var(--text-secondary);
-    margin-bottom: 2rem;
-    line-height: 1.47059;
-    font-size: 17px;
-    letter-spacing: -0.022em;
 }
 
 .project-tags {
@@ -1500,41 +1486,6 @@ section {
     }
 }
 
-/* ============================================================
-   Project Cards – Icon / Gradient Image Treatment
-   ============================================================ */
-.project-ai {
-    background: linear-gradient(135deg, #0d1028 0%, #0a1040 50%, #060b28 100%);
-}
-
-.project-cloud {
-    background: linear-gradient(135deg, #061828 0%, #0a2540 50%, #061828 100%);
-}
-
-.project-finance {
-    background: linear-gradient(135deg, #1a1505 0%, #261c00 50%, #1a1505 100%);
-}
-
-.project-cost {
-    background: linear-gradient(135deg, #061808 0%, #082010 50%, #061808 100%);
-}
-
-.project-social {
-    background: linear-gradient(135deg, #180810 0%, #200a18 50%, #150610 100%);
-}
-
-.project-icon {
-    font-size: 72px;
-    line-height: 1;
-    filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.6));
-    transition: transform 0.4s var(--transition-smooth);
-    z-index: 1;
-}
-
-.project-card:hover .project-icon {
-    transform: scale(1.12);
-}
-
 .project-metric {
     display: flex;
     align-items: baseline;
@@ -1571,7 +1522,7 @@ section {
 
 .lc-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: 1fr;
     gap: 2.5rem;
     max-width: 1100px;
     margin: 0 auto;
@@ -1628,10 +1579,6 @@ section {
    Responsive Additions for New Sections
    ============================================================ */
 @media (max-width: 768px) {
-    .lc-grid {
-        grid-template-columns: 1fr;
-    }
-
     .project-metric {
         flex-direction: column;
         gap: 0.25rem;
