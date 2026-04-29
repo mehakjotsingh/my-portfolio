@@ -656,7 +656,10 @@ section {
 
 .project-links {
     display: flex;
+    flex-wrap: wrap;
     gap: 1.5rem;
+    justify-content: center;
+    margin-bottom: 1.25rem;
 }
 
 .project-link {
