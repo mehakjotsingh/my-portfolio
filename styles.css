@@ -297,6 +297,36 @@ body {
     transform: translateY(-2px);
 }
 
+.btn-linkedin {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background-color: #0a66c2;
+    color: #ffffff;
+    border: 1px solid #0a66c2;
+    box-shadow: 0 2px 8px rgba(10, 102, 194, 0.35);
+}
+
+.btn-linkedin-icon {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+}
+
+.btn-linkedin:hover {
+    background-color: #004182;
+    border-color: #004182;
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(10, 102, 194, 0.45);
+}
+
+.btn-linkedin:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(10, 102, 194, 0.35);
+}
+
 .hero-image {
     display: flex;
     justify-content: center;
