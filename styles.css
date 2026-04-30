@@ -1466,8 +1466,9 @@ section {
         position: static;
     }
 
+    /* relative: contain ::before; static let it size to .jtl-node (huge ellipses) */
     .jtl-dot {
-        position: static;
+        position: relative;
         margin: 3px 0 0 0;
         flex-shrink: 0;
         order: -1;
